@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-#
 
 """Session-scoped PhysX instance for the benchmark suite.
 
@@ -23,9 +22,8 @@ import pytest
 
 
 def pytest_addoption(parser):
-    # --bench-device replaces the OVPHYSX_BENCH_DEVICE env var (review on
-    # MR !7247: env-var config is hard to discover; CLI option is idiomatic
-    # pytest). Default = cpu so local `pytest` invocations work without args.
+    # CLI option (env-var config is hard to discover). Default = cpu so
+    # local `pytest` invocations work without args.
     parser.addoption(
         "--bench-device",
         action="store",
@@ -125,6 +123,9 @@ def attach_usd_with_ovstage(physx, usd_path: Path, stage_name: str):
     ordinal = 1
     try:
         ovstage.population.open_usd(stage, str(usd_path), ordinal=ordinal, domains=ovstage.PopulationDomain.PHYSICS)
+        # Population does not seal: the caller owns ordinal lifecycle, and
+        # attach_ovstage() reads at a sealed ordinal.
+        stage.advance_write_floor(ordinal=ordinal).wait()
         physx.attach_ovstage(stage, read_ordinal=ordinal)
     except Exception:
         stage.destroy()

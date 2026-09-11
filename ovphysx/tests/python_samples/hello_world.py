@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-#
 
 # NOTE: This file is included verbatim in documentation via literalinclude.
 # Tutorial marker comments below define the included range.
@@ -22,6 +21,9 @@ def attach_scene(physx, usd_path):
     ordinal = 1
     try:
         ovstage.population.open_usd(stage, str(usd_path), ordinal=ordinal, domains=ovstage.PopulationDomain.PHYSICS)
+        # Population does not seal: the caller owns ordinal lifecycle, and
+        # attach_ovstage() reads at a sealed ordinal.
+        stage.advance_write_floor(ordinal=ordinal).wait()
         physx.attach_ovstage(stage, read_ordinal=ordinal)
         print("Loaded scene through ovstage")
         return stage

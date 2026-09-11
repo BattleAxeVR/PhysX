@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-#
 
 """GPU-mode tests for TensorBindingsAPI features.
 
@@ -289,10 +288,8 @@ class TestShapePropertiesGpu:
         b.destroy()
 
     def test_shape_property_cross_device_read_to_cuda_buffer(self, physx_sdk):
-        # Shape-property tensors are CPU-only on the runtime side. Reading
-        # into a CUDA dst is now supported via cross-device staging
-        # (CPU staging buffer + memcpyHtoD); the prior strict device-mismatch
-        # contract has been replaced by transparent cross-device transfer.
+        # Shape-property tensors are CPU-only on the runtime side. Reading into
+        # a CUDA dst uses cross-device staging (CPU staging buffer + memcpyHtoD).
         _load_and_step(physx_sdk, scene="simple_physics_scene.usda")
         b = physx_sdk.create_tensor_binding(
             pattern="/World/Cube*", tensor_type=TensorType.RIGID_BODY_SHAPE_FRICTION_AND_RESTITUTION

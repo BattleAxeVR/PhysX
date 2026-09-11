@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-#
 
 """Generate a synthetic warehouse-style USDA fixture for ovphysx benchmarks.
 
@@ -32,10 +31,9 @@ ITEMS_PER_SHELF = 8
 
 # Geometry (meters)
 RACK_SPACING = 8.0     # distance between adjacent racks in X and Z
-RACK_HALF = 2.5        # half-width of a rack (posts at +/- RACK_HALF in X and Z)
-                       # — was 1.5 but that left items overlapping by 0.114m
-                       # at startup (item size 0.4 vs spacing 2.0/7=0.286);
-                       # the initial penetration biased step-time results.
+RACK_HALF = 2.5        # half-width of a rack (posts at +/- RACK_HALF in X and Z);
+                       # sized to avoid initial item overlap/penetration, which
+                       # would bias step-time results.
 RACK_HEIGHT = 1.8      # vertical spacing between shelf levels
 POST_SIZE = 0.2        # cross-section of each post
 ITEM_SIZE = 0.4        # cube edge of each pallet item — with RACK_HALF=2.5

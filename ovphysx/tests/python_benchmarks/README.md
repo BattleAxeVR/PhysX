@@ -1,7 +1,10 @@
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+
 # ovphysx benchmarks (Python)
 
 Opt-in `pytest-benchmark` suite scoped to signals the C++ harness can't
-measure. Per review on MR !7247 (aborovicka): running the full step / clone /
+measure. Per review (aborovicka): running the full step / clone /
 lab grid through Python on top of the C++ suite was duplicate machine time —
 the wrapper overhead on top of native compute is sub-µs and didn't add signal.
 
@@ -25,7 +28,7 @@ show up as a tensor-I/O regression here anyway.
 ## Run via the cmake driver
 
 ```bash
-cd omni/ovphysx
+cd ovphysx
 cmake -P scripts/install.cmake
 cmake -P scripts/test_benchmarks_python.cmake
 ```

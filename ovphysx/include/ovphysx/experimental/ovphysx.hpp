@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause
-//
 
 #ifndef OVPHYSX_EXPERIMENTAL_OVPHYSX_HPP
 #define OVPHYSX_EXPERIMENTAL_OVPHYSX_HPP
@@ -184,10 +183,9 @@ public:
     ///
     /// Creates physics-optimized clones in the internal representation for
     /// high-performance simulation. The source prim must exist in the loaded
-    /// USD stage and have physics properties. Replication executes inline; any
-    /// returned operation index is already complete. Backed by the PhysX SDK
-    /// replicator (binary serialization), so cloned articulations are real
-    /// articulations.
+    /// USD stage and have physics properties. Replication runs inline (any returned
+    /// op index is already complete), backed by the PhysX SDK replicator, so cloned
+    /// articulations are real articulations.
     ///
     /// This is the clone entrypoint for both standalone callers and callers
     /// that populate the scene through an ovstage Stage attached via the C API
@@ -195,25 +193,20 @@ public:
     /// only (USD untouched).
     ///
     /// @param sourcePath USD path of the source prim hierarchy (e.g., "/World/env0")
-    /// @param targetPaths Vector of USD paths for cloned hierarchies (e.g., ["/World/env1", "/World/env2"])
+    /// @param targetPaths Vector of runtime physics-object paths for cloned hierarchies
+    ///        (e.g., ["/World/env1", "/World/env2"])
     /// @param parentTransforms World pose of each copy's parent. Flat array of
-    ///        [targetPaths.size() * 7] floats: (px, py, pz, qx, qy, qz, qw) per
-    ///        target. Each cloned body keeps its pose relative to the source's
-    ///        parent (copy = transform * inverse(source_parent) * body), so an
-    ///        at-origin source lands each body exactly at the transform. Pass
-    ///        nullptr to co-locate every copy on the source.
-    /// @param envIds Optional logical environment id per target
-    ///        ([targetPaths.size()] uint32, each < 0x00FFFFFF -- PhysX supports at
-    ///        most 1<<24 environments, runtime id = envIds[i]+1). Stable across
-    ///        calls: the same id always maps to the same runtime environment, so
-    ///        clones from different calls that share an id collide with each other
-    ///        and stay isolated from every other environment (needed when one
-    ///        logical environment is assembled from several clone calls). Pass
-    ///        nullptr for automatic per-call numbering.
-    /// @param outOpIndex Optional; if non-null, receives the clone operation index
-    ///        on success (usable with waitOp(), mirroring the C/Python forms). The
-    ///        clone has already completed synchronously when this returns, so waiting
-    ///        on the index is only for API uniformity.
+    ///        [targetPaths.size() * 7] floats: (px, py, pz, qx, qy, qz, qw) per target
+    ///        (copy = transform * inverse(source_parent) * body). Pass nullptr to
+    ///        co-locate every copy on the source.
+    /// @param envIds Optional logical environment id per target ([targetPaths.size()]
+    ///        uint32, each < 0x00FFFFFF; runtime id = envIds[i]+1). Stable across calls:
+    ///        the same id maps to the same environment, so clones sharing an id collide
+    ///        and stay isolated from other environments. Pass nullptr for automatic
+    ///        per-call numbering.
+    /// @param outOpIndex Optional; receives the clone operation index on success
+    ///        (usable with waitOp()). The clone completes synchronously, so waiting is
+    ///        only for API uniformity.
     /// @return OVPHYSX_API_SUCCESS if cloning succeeded, OVPHYSX_API_ERROR on error
     ovphysx_api_status_t clone(const std::string& sourcePath, const std::vector<std::string>& targetPaths,
                                const float* parentTransforms = nullptr,
@@ -256,11 +249,11 @@ public:
     /**
      * @brief Create a tensor binding for bulk physics data access
      *
-     * Creates a binding that connects USD prim paths (matched by pattern) to a tensor type,
-     * enabling efficient bulk read/write of simulation state.
+     * Creates a binding that connects physics-object paths (matched by pattern) to a tensor type,
+     * enabling efficient bulk read/write for authored USD objects and runtime-only clones.
      *
      * @param out_binding  Receives the created TensorBinding on success
-     * @param pattern      USD prim path pattern (e.g., "/World/robot*")
+     * @param pattern      Physics-object path pattern (e.g., "/World/robot*")
      * @param tensor_type  The type of tensor data to bind
      * @return OVPHYSX_API_SUCCESS on success
      */
@@ -412,18 +405,9 @@ public:
      * This is the primary creation path. Use CreateArgs to configure device
      * selection, GPU index, config entries, and other options.
      *
-     * Example:
-     * @code
-     *   ovphysx_initialize();
-     *   {
-     *       CreateArgs args;
-     *       args.setConfigEntries(entries, 2);
-     *       PhysX physx;
-     *       auto status = PhysX::create(physx, args);
-     *       if (status != OVPHYSX_API_SUCCESS) { ... handle error ... }
-     *   }
-     *   ovphysx_shutdown();
-     * @endcode
+     * Initialize the C API first, construct CreateArgs, call create(), and check
+     * its returned status. Destroy the PhysX instance before calling
+     * ovphysx_shutdown().
      *
      * @param out_instance Receives the created PhysX instance on success.
      * @param args         Creation arguments (default-constructed = OVPHYSX_CREATE_ARGS_DEFAULT).

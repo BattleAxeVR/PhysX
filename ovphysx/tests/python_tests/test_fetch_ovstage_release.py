@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-#
+
 """Regression tests for the ovstage release fetcher."""
 
 import hashlib
@@ -102,7 +102,7 @@ def test_download_verifies_sha256(tmp_path):
     src = tmp_path / "blob.bin"
     src.write_bytes(b"x" * 5000)  # over the 4096 size floor
     good = hashlib.sha256(src.read_bytes()).hexdigest()
-    m._download(src.as_uri(), str(tmp_path / "ok.bin"), good)  # matches
+    m._download(src.as_uri(), str(tmp_path / "ok.bin"), good)
     m._download(src.as_uri(), str(tmp_path / "ok2.bin"), "sha256:" + good)  # 'sha256:' prefix tolerated
     with pytest.raises(SystemExit, match="sha256"):
         m._download(src.as_uri(), str(tmp_path / "bad.bin"), "0" * 64)

@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause
-//
 
 // Per-step simulation cost on GPU device. Only runs when --forceGpu was set.
 
@@ -39,7 +38,7 @@ public:
 
     void startRun() override
     {
-        // Cache PhysX* once — see StepCpuBase for rationale (MR !7247).
+        // Cache PhysX* once; see StepCpuBase for rationale.
         mPhysX = BmGlobals::getInstance().getPhysX();
         if (!mPhysX) return;
 

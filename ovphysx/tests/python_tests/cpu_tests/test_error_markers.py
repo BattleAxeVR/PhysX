@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-#
+
 """Verify that ERROR_MARKERS in conftest.py catch native C++ runtime warnings.
 
 The conftest hook checks captured stdout/stderr and native log records for
@@ -30,8 +30,7 @@ def test_error_markers_catch_native_warnings():
         import sys
 
         def test_emit_sentinel():
-            # Print a string that matches an ERROR_MARKERS entry.
-            # The conftest makereport hook scans captured stderr for these.
+            # Matches an ERROR_MARKERS entry; the conftest makereport hook scans captured stderr for these.
             print("[ErrorMarkerSentinel]", file=sys.stderr)
     """)
 

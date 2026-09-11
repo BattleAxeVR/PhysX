@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (c) 2018-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause
-//
 
 // Adapted from omni.physx/tests/test.benchmarks/framework/BmGlobals.cpp.
 //
@@ -140,9 +139,9 @@ BmGlobals::BmGlobals(bool sanityCheck,
     mThis = this;
 
     ovphysx::CreateArgs args;
-    // Device (CPU vs GPU) is no longer a create-arg; it is resolved per-stage
-    // during ovstage ingest from physxScene:enableGPUDynamics. The forceGpu()
-    // gate on each benchmark ensures only stages matching the current pass's
+    // Device (CPU vs GPU) is resolved per-stage during ovstage ingest from
+    // physxScene:enableGPUDynamics, not as a create-arg. The forceGpu() gate
+    // on each benchmark ensures only stages matching the current pass's
     // device are loaded.
 
     // --threads=N on the CLI sets the Carbonite /physics/numThreads setting

@@ -1,9 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause
-//
 
 // NOTE: This file is included verbatim in documentation via literalinclude.
-// Tutorial marker comments below define the included range.
 
 #include <ovphysx/ovphysx.h>
 #include <ovphysx/ovphysx_types.h>
@@ -12,7 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Compile-time check: fail compilation if C++ compiler is used
 #ifdef __cplusplus
 #error "This file must be compiled as C, not C++"
 #endif
@@ -149,7 +146,6 @@ static int run(void) {
 
     printf("USD scene loaded.\n");
 
-    // [tutorial-start]
     // 3. Create tensor bindings
     // 3a. DOF velocity target binding (write control targets)
     ovphysx_tensor_binding_handle_t dof_target_binding = 0;
@@ -249,7 +245,6 @@ static int run(void) {
             }
         }
 
-        // Step simulation
         ovphysx_enqueue_result_t step_result = ovphysx_step(handle, dt);
         if (step_result.status != OVPHYSX_API_SUCCESS) {
             fprintf(stderr, "ERROR in step enqueue (status=%d)\n", (int)step_result.status);
@@ -296,7 +291,6 @@ static int run(void) {
         }
     }
 
-    // Cleanup
     printf("\n=== Cleanup ===\n");
 
     destroy_tensor(&dof_target_tensor);
@@ -306,8 +300,6 @@ static int run(void) {
     ovphysx_destroy_tensor_binding(handle, link_pose_binding);
 
     printf("=== Articulation control sample completed successfully ===\n");
-    // [tutorial-end]
-
     ovphysx_sample_destroy_stage(handle, &g_stage_attachment);
     ovphysx_destroy_instance(handle);
     ovphysx_shutdown();

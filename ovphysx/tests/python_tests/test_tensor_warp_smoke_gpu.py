@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-#
 
 """Smoke tests: ovphysx tensor Python API with warp (``wp.array``) buffers, GPU mode.
 
@@ -132,8 +131,27 @@ class TestWarpGpuUint8:
 
     def test_disable_simulation_roundtrip(self, physx_sdk):
         _load_boxes(physx_sdk)
-        b = physx_sdk.create_tensor_binding(raise_if_empty=True,
-            pattern=_RB_PATTERN, tensor_type=TensorType.RIGID_BODY_DISABLE_SIMULATION
+        b = physx_sdk.create_tensor_binding(
+            raise_if_empty=True,
+            pattern=_RB_PATTERN,
+            tensor_type=TensorType.RIGID_BODY_DISABLE_SIMULATION,
+        )
+        buf = wp.zeros(b.shape, dtype=wp.uint8, device=_DEVICE)
+        b.read(buf)
+        assert buf.numpy().shape == tuple(b.shape)
+        ones = np.ones(b.shape, dtype=np.uint8)
+        b.write(wp.array(ones, dtype=wp.uint8, device=_DEVICE))
+        result = wp.zeros(b.shape, dtype=wp.uint8, device=_DEVICE)
+        b.read(result)
+        assert np.array_equal(result.numpy(), ones)
+        b.destroy()
+
+    def test_disable_gravity_roundtrip(self, physx_sdk):
+        _load_boxes(physx_sdk)
+        b = physx_sdk.create_tensor_binding(
+            raise_if_empty=True,
+            pattern=_RB_PATTERN,
+            tensor_type=TensorType.RIGID_BODY_DISABLE_GRAVITY,
         )
         buf = wp.zeros(b.shape, dtype=wp.uint8, device=_DEVICE)
         b.read(buf)
@@ -243,8 +261,10 @@ class TestWarpGpuStructuredTypes:
     def test_wp_vec3_mass_center(self, physx_sdk):
         """wp.vec3 exports [N, 3] -> matches ARTICULATION_MASS_CENTER_WORLD (read-only)."""
         _load_articulations(physx_sdk)
-        b = physx_sdk.create_tensor_binding(raise_if_empty=True,
-            pattern=_ARTI_PATTERN, tensor_type=TensorType.ARTICULATION_MASS_CENTER_WORLD
+        b = physx_sdk.create_tensor_binding(
+            raise_if_empty=True,
+            pattern=_ARTI_PATTERN,
+            tensor_type=TensorType.ARTICULATION_MASS_CENTER_WORLD,
         )
         n = b.shape[0]
         buf = wp.zeros(n, dtype=wp.vec3, device=_DEVICE)

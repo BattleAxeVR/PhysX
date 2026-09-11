@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause
-//
 
 // CpuNoCudaContextGpuTest: on a GPU-capable box, calling ovphysx_set_cpu_mode(true)
 // before creating an instance and stepping must NOT open a CUDA context. This is
@@ -143,6 +142,18 @@ TEST(CpuNoCudaContextGpuTest, CpuOnlyFlagCreatesNoCudaContextOnGpuBox)
     ASSERT_EQ(ovstage_population_wait_op(
                   stage, enqueue.op_index, OVSTAGE_TIMEOUT_INFINITE, &populationWait),
               OVSTAGE_OK);
+
+    // Population does not seal: the caller owns ordinal lifecycle, and
+    // ovphysx_attach_ovstage() reads at a sealed ordinal.
+    ovstage_write_floor_desc_t writeFloor{};
+    writeFloor.ordinal = 1;
+    writeFloor.scope = OVSTAGE_SCOPE_ALL;
+    const ovstage_enqueue_result_t floorEnqueue = ovstage_advance_write_floor(stage, &writeFloor);
+    ASSERT_EQ(floorEnqueue.status, OVSTAGE_OK);
+
+    ovstage_op_wait_result_t floorWait{};
+    ASSERT_EQ(ovstage_wait_op(stage, floorEnqueue.op_index, OVSTAGE_TIMEOUT_INFINITE, &floorWait), OVSTAGE_OK);
+    (void)ovstage_release_op(stage, floorEnqueue.op_index);
 
     ASSERT_EQ(ovphysx_attach_ovstage(h, stage, 1).status, OVPHYSX_API_SUCCESS);
 

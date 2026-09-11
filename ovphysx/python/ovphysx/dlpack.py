@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-#
 
 """DLPack tensor structures for zero-copy data interchange.
 
@@ -105,6 +104,9 @@ class DLDataTypeCode(ctypes.c_uint8):
     kDLFloat6_e3m2fn = 16
     # FP4 types
     kDLFloat4_e2m1fn = 17
+
+    def __int__(self):
+        return self.value
 
     def __eq__(self, other):
         other_value = getattr(other, "value", other)

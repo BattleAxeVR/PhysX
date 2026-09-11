@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (c) 2018-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause
-//
 
 // Adapted from omni.physx/tests/test.benchmarks/Harness.cpp.
 //
@@ -367,7 +366,7 @@ void harnessImpl(int argc, char** argv, PrintfCbFunc printCb)
                 mean += GETTIME(r, s);
             }
             mean *= 1.0f / (maxRun - minRun + 1);
-            record.time[s] = uint64_t(mean); // store in record array
+            record.time[s] = uint64_t(mean);
 
             // compute standard deviation
             uint64_t variance = 0;

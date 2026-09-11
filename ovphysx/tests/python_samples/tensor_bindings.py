@@ -1,9 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-#
 
 # NOTE: This file is included verbatim in documentation via literalinclude.
-# Tutorial marker comments below define the included range.
 
 #!/usr/bin/env python3
 """
@@ -36,6 +34,9 @@ def attach_scene(physx, usd_path, stage_name):
     ordinal = 1
     try:
         ovstage.population.open_usd(stage, str(usd_path), ordinal=ordinal, domains=ovstage.PopulationDomain.PHYSICS)
+        # Population does not seal: the caller owns ordinal lifecycle, and
+        # attach_ovstage() reads at a sealed ordinal.
+        stage.advance_write_floor(ordinal=ordinal).wait()
         physx.attach_ovstage(stage, read_ordinal=ordinal)
         return stage
     except Exception:
@@ -61,7 +62,6 @@ def main():
         stage = attach_scene(physx, usd_path, "ovphysx-tensor-bindings-sample")
         physx.wait_all()
 
-        # [tutorial-start]
         print("Creating tensor binding for DOF velocity targets...")
         velocity_target_binding = physx.create_tensor_binding(
             pattern="/World/articulation/articulationLink*",
@@ -115,7 +115,6 @@ def main():
                 )
 
         print("\nCompleted 1000 simulation steps successfully!")
-        # [tutorial-end]
     finally:
         if optional_pose_binding is not None:
             optional_pose_binding.destroy()

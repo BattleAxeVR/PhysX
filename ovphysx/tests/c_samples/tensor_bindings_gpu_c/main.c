@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause
-//
 
 #include "ovphysx/ovphysx.h"
 #include "ovstage_sample.h"
@@ -16,7 +15,6 @@
 
 static ovphysx_sample_stage_attachment_t g_stage_attachment;
 
-// Helper to check and report errors
 static int check_result(ovphysx_result_t result, const char* context)
 {
     if (result.status != OVPHYSX_API_SUCCESS)
@@ -36,7 +34,6 @@ static int check_result(ovphysx_result_t result, const char* context)
     return 1;
 }
 
-// Helper to wait for async ops
 static int wait_op(ovphysx_handle_t handle, ovphysx_op_index_t op_index, const char* context)
 {
     ovphysx_op_wait_result_t wait_result = { 0 };
@@ -74,6 +71,15 @@ static int run(void)
 #else
     printf("=== Tensor Binding API Sample ===\n\n");
 
+    const int32_t device_id = 0;
+    cudaError_t cuda_result = cudaSetDevice(device_id);
+    if (cuda_result != cudaSuccess)
+    {
+        fprintf(stderr, "Failed to select CUDA device %d: %s\n",
+                device_id, cudaGetErrorString(cuda_result));
+        return 1;
+    }
+
     ovphysx_result_t result = ovphysx_initialize();
     if (!check_result(result, "initialize"))
         return 1;
@@ -86,9 +92,9 @@ static int run(void)
     // incompatible with contact-modify callbacks (e.g. PhysxSurfaceVelocityAPI).
     ovphysx_handle_t handle = 0;
     ovphysx_create_args args = OVPHYSX_CREATE_ARGS_DEFAULT;
-    // GPU vs CPU is determined at create_instance time from cpu_only + CUDA availability.
-    // To select a specific GPU ordinal, set active_cuda_gpus:
-    //   args.active_cuda_gpus = ovphysx_cstr("1"); // run PhysX on CUDA device 1
+    char device_ordinal[16];
+    snprintf(device_ordinal, sizeof(device_ordinal), "%d", device_id);
+    args.active_cuda_gpus = ovphysx_cstr(device_ordinal);
 
     result = ovphysx_create_instance(&args, &handle);
     if (!check_result(result, "create_instance")) {
@@ -190,7 +196,6 @@ static int run(void)
     printf("  Articulation DOFs: shape=[%lld, %lld], ndim=%d\n",
            (long long)dof_spec.shape[0], (long long)dof_spec.shape[1], dof_spec.ndim);
 
-    // Allocate GPU buffers
     const size_t rb_count = (size_t)rb_spec.shape[0];
     const size_t rb_components = (size_t)rb_spec.shape[1];
     const size_t dof_count = (size_t)dof_spec.shape[0];
@@ -211,14 +216,10 @@ static int run(void)
         return destroy_instance_and_shutdown(handle);
     }
 
-    // Use the first CUDA ordinal from active_cuda_gpus as the DLTensor device so
-    // the tensor allocation matches wherever PhysX is actually running.
-    // Default (empty active_cuda_gpus) means GPU 0; "1" means GPU 1; "0,1" means
-    // primary ordinal 0, etc.  strtol stops at the first comma, giving the first ordinal.
+    // Reuse the explicit PhysX CUDA ordinal in every DLTensor so the allocation
+    // and DLPack metadata identify the same device as the simulation.
     int64_t rb_shape[2] = { (int64_t)rb_count, (int64_t)rb_components };
     int64_t dof_shape[2] = { (int64_t)dof_count, (int64_t)dof_components };
-    int32_t device_id = (args.active_cuda_gpus.ptr && args.active_cuda_gpus.length > 0)
-        ? (int32_t)strtol(args.active_cuda_gpus.ptr, NULL, 10) : 0;
 
     DLTensor rb_tensor = {
         .data = rb_device,
@@ -289,7 +290,6 @@ static int run(void)
         return destroy_instance_and_shutdown(handle);
     }
 
-    // Copy to host and print
     float* host_transforms = malloc(rb_count * rb_components * sizeof(float));
     float* host_dof_pos = malloc(dof_count * dof_components * sizeof(float));
     
@@ -402,7 +402,6 @@ static int run(void)
     if (dof_components > 8) printf("...");
     printf("\n");
 
-    // Cleanup
     printf("\n=== Cleanup ===\n");
 
     free(host_transforms);

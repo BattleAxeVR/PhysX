@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-#
 
 # NOTE: This file is included verbatim in documentation via literalinclude.
 # Tutorial marker comments below define the included range.
@@ -13,6 +12,11 @@ This is the reference example for external authoring and validation tooling
 applies a PhysX API schema to a prim on an in-memory stage. It doubles as a CI
 regression test for schema exposure: it asserts on every step and exits
 non-zero on failure.
+
+This runs in a fresh process, which is what makes ``RegisterPlugins()`` viable
+here. In a process that already opened a stage or queried the schema registry,
+registration is silently ineffective and ``PXR_PLUGINPATH_NAME`` must be preset
+instead; ``schema_registry_ordering.py`` covers both orderings (NVBug 6530141).
 """
 
 # [tutorial-start]
@@ -41,7 +45,12 @@ def main() -> int:
     for path in schema_paths:
         print("  ", path)
 
-    # Register them with the stock usd-core runtime.
+    # Register them with the stock usd-core runtime. This must happen before
+    # anything in the process opens a stage or queries USD's schema registry --
+    # that registry is built once, on first access, and a late call fails
+    # silently. If USD may already be initialised (any DCC host), preset
+    # PXR_PLUGINPATH_NAME before the process launches instead. Refer to
+    # docs/physics_schemas.md.
     registry = Plug.Registry()
     registered = []
     for path in schema_paths:

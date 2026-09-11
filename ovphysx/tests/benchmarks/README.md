@@ -1,3 +1,6 @@
+<!-- SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved. -->
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+
 # ovphysx benchmarks (C++)
 
 Opt-in performance regression suite for ovphysx.
@@ -17,7 +20,7 @@ The suite is **off by default** so it never affects normal `validate_all`
 runs. Opt in by passing `--benchmarks` to the build script:
 
 ```bash
-cd omni/ovphysx
+cd ovphysx
 ./build.sh --benchmarks                    # add --rebuild for a clean build
 cmake -P scripts/install.cmake
 ```
